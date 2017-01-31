@@ -512,6 +512,11 @@ void create_pattern(void)
   // Frame counter used to further slow down speed of certain color transitions.
   static uint8_t slow_counter;
 
+  // Temporary variable used for code space savings. Stores the value of the
+  //  color level that's currently being manipulated. Using this variable saves
+  //  22 bytes of codespace.
+  uint8_t current_level;
+
   // The rotary encoder was just turned clockwise.
   if (knob_adjustment == 1)
   {
@@ -565,6 +570,7 @@ void create_pattern(void)
       // Decrement color channel counter.
       channel --;
 
+current_level = levels[channel];
       // Random color approach mode
       //  A random color is chosen and each executed frame brings the displayed
       //   color closer to the chosen color. When a color channel's color
@@ -573,19 +579,19 @@ void create_pattern(void)
       {
 
         // If this channel isn't bright enough yet.
-        if (levels[channel] < goals[channel])
+        if (current_level < goals[channel])
         {
 
           // Add a bit of brightness.
-          levels[channel] ++;
+          levels[channel] = current_level + 1;
         }
 
         // If it is too bright.
-        else if (levels[channel] > goals[channel])
+        else if (current_level > goals[channel])
         {
 
           // Lighten it a bit
-          levels[channel] --;
+          levels[channel] = current_level - 1;
         }
       }
 
@@ -609,7 +615,7 @@ void create_pattern(void)
       //  modes, but it won't have any appparent effect.
       // The current color channel's level is the same as the last chosen random
       //  level for this color channel.
-      if (levels[channel] == goals[channel])
+      if (current_level == goals[channel])
       {
 
         // Read a byte from program space to get a psuedo-random value.
@@ -628,7 +634,7 @@ void create_pattern(void)
       {
 
         // Increment the brightness of this color channel.
-        levels[channel] ++;
+        levels[channel] = ++current_level;
       }
 
       // Secondary color flip-through mode
